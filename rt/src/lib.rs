@@ -4,6 +4,10 @@ use core::panic::PanicInfo;
 use core::ptr;
 use core::ptr::addr_of_mut;
 
+#[link_section = ".boot_loader"]
+#[used]
+pub static BOOT_LOADER: [u8; 256] = rp2040_boot2::BOOT_LOADER_W25Q080;
+
 #[no_mangle]
 pub unsafe extern "C" fn Reset() -> ! {
     extern "C" {
