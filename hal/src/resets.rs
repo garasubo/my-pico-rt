@@ -19,3 +19,9 @@ impl Deref for Resets {
         unsafe { &*(RESET_BASE as *const ResetRegisters) }
     }
 }
+
+impl Resets {
+    pub fn new() -> Self {
+        Self
+    }
+}

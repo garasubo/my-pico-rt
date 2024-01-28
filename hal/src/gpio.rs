@@ -62,7 +62,6 @@ impl Deref for PadsBank0 {
 }
 
 pub struct Gpio {
-    resets: Resets,
     sio: Sio,
     io_bank0: IoBank0,
     pads_bank0: PadsBank0,
@@ -70,29 +69,27 @@ pub struct Gpio {
 
 impl Gpio {
     pub fn new() -> Self {
-        let resets = Resets;
         let sio = Sio;
         let io_bank0 = IoBank0;
         let pads_bank0 = PadsBank0;
         Self {
-            resets,
             sio,
             io_bank0,
             pads_bank0,
         }
     }
 
-    pub fn wait_gpio_reset_done(&self) {
+    pub fn wait_gpio_reset_done(&self, resets: &Resets) {
         // Bit 5: IO_BANK0
         unsafe {
-            self.resets.reset.modify(|r| r & !(1 << 5));
+            resets.reset.modify(|r| r & !(1 << 5));
         }
-        while self.resets.reset_done.read() & (1 << 5) == 0 {}
+        while resets.reset_done.read() & (1 << 5) == 0 {}
         // Bit 8: PADS_BANK0
         unsafe {
-            self.resets.reset.modify(|r| r & !(1 << 8));
+            resets.reset.modify(|r| r & !(1 << 8));
         }
-        while self.resets.reset_done.read() & (1 << 8) == 0 {}
+        while resets.reset_done.read() & (1 << 8) == 0 {}
     }
 
     pub fn set_output_enable(&self, pin: usize) {
