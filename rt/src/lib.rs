@@ -1,5 +1,9 @@
 #![cfg_attr(not(test), no_std)]
+#![feature(naked_functions)]
 
+pub mod process;
+
+use core::arch::asm;
 use core::panic::PanicInfo;
 use core::ptr;
 use core::ptr::addr_of_mut;
@@ -102,6 +106,34 @@ pub extern "C" fn DefaultExceptionHandler() {
 }
 
 #[no_mangle]
+#[naked]
 pub unsafe extern "C" fn SVCall() {
-    todo!()
+    asm!("
+        ldr r0, 100f
+        cmp lr, r0
+        bne 1f
+
+        movs r0, #1
+        msr CONTROL, r0
+        isb,
+        ldr r0, 200f
+        mov lr, r0
+        bx lr
+
+    1:
+        movs r0, #0
+        msr CONTROL, r0
+        isb
+        ldr r0, 100f
+        mov lr, r0
+        bx lr
+
+    .align 4
+    100:
+        .word 0xfffffff9
+    200:
+        .word 0xfffffffd
+    ",
+    options(noreturn),
+    );
 }

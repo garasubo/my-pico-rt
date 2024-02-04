@@ -32,6 +32,7 @@ SECTIONS {
 
   .text :
   {
+    . = ALIGN(4);
     *(.text .text.*);
   } > FLASH
 

@@ -76,6 +76,6 @@ impl Uart0 {
     pub fn getc(&self) -> u8 {
         // check if receive FIFO is empty
         while self.fr.read() & (1 << 4) != 0 {}
-        unsafe { self.dr.read() as u8 }
+        self.dr.read() as u8
     }
 }

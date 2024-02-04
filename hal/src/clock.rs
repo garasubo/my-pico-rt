@@ -43,6 +43,7 @@ impl Deref for Clock {
 
 const XOSC_BASE: usize = 0x4002_4000;
 
+#[allow(dead_code)]
 pub struct XoscRegisters {
     ctrl: RW<u32>,
     status: RW<u32>,
