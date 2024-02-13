@@ -2,6 +2,7 @@
 #![feature(naked_functions)]
 
 pub mod process;
+mod task;
 
 use core::arch::asm;
 use core::panic::PanicInfo;
