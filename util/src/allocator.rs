@@ -26,7 +26,7 @@ impl FreeArea {
 unsafe impl Send for FreeArea {}
 
 
-struct Allocator {
+pub struct Allocator {
     free_list_head: [FreeArea; LIST_LEN],
 }
 
@@ -120,7 +120,7 @@ impl Allocator {
         }
     }
 
-    fn alloc(&mut self, layout: Layout) -> *mut u8 {
+    pub fn alloc(&mut self, layout: Layout) -> *mut u8 {
         let size = layout.size();
         let align = layout.align();
         let mut idx = 0;
@@ -168,7 +168,7 @@ impl Allocator {
         core::ptr::null_mut()
     }
 
-    fn dealloc(&mut self, ptr: *mut u8, layout: Layout) {
+    pub fn dealloc(&mut self, ptr: *mut u8, layout: Layout) {
         let heap_start = ptr as usize;
         let heap_end = heap_start + (layout.size() + MIN_BASE_SIZE - 1) / MIN_BASE_SIZE * MIN_BASE_SIZE;
         self.add_area(heap_start, heap_end);

@@ -1,13 +1,21 @@
 #![cfg_attr(not(test), no_std)]
 #![feature(naked_functions)]
 
+extern crate alloc;
+
 pub mod process;
-mod task;
+pub mod task;
+mod spin_lock;
+mod allocator;
 
 use core::arch::asm;
 use core::panic::PanicInfo;
 use core::ptr;
-use core::ptr::addr_of_mut;
+use core::ptr::{addr_of, addr_of_mut};
+use crate::allocator::LockedAllocator;
+
+#[global_allocator]
+static GLOBAL_ALLOCATOR: LockedAllocator = LockedAllocator::new();
 
 #[link_section = ".boot_loader"]
 #[used]
@@ -21,6 +29,7 @@ pub unsafe extern "C" fn Reset() -> ! {
         static mut _sdata: u8;
         static mut _edata: u8;
         static _sidata: u8;
+        static _heap_start: u8;
     }
 
     let sbss = addr_of_mut!(_sbss);
@@ -34,6 +43,9 @@ pub unsafe extern "C" fn Reset() -> ! {
 
     let count = edata as usize - sdata as usize;
     ptr::copy_nonoverlapping(sidata, sdata, count);
+
+    let heap_start = addr_of!(_heap_start) as usize;
+    GLOBAL_ALLOCATOR.0.lock().init(heap_start, heap_start + 0x2000);
 
     extern "Rust" {
         fn main() -> !;

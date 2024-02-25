@@ -59,6 +59,8 @@ SECTIONS {
     _edata = .;
   } > RAM AT> FLASH
 
+  _heap_start = ADDR(.data) + SIZEOF(.data);
+
   _sidata = LOADADDR(.data);
 
   /DISCARD/ :

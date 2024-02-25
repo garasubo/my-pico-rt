@@ -34,6 +34,8 @@ pub struct SioRegisters {
     fifo_st: RW<u32>,
     fifo_wr: WO<u32>,
     fifo_rd: RO<u32>,
+    spinlock_st: RO<u32>,
+    // 0x60
 }
 
 impl SioRegisters {
@@ -98,5 +100,38 @@ impl Deref for Sio {
 
     fn deref(&self) -> &Self::Target {
         unsafe { &*(SIO_BASE as *const SioRegisters) }
+    }
+}
+
+#[repr(transparent)]
+pub struct SioSpinLockRegister(RW<u32>);
+
+pub struct SioSpinLock<const N: usize>;
+
+impl<const N: usize> Deref for SioSpinLock<N> {
+    type Target = SioSpinLockRegister;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe { &*((SIO_BASE + 0x100 + N * 0x4) as *const SioSpinLockRegister) }
+    }
+
+}
+
+impl SioSpinLockRegister {
+    pub fn lock(&self) -> bool {
+        self.0.read() > 0
+    }
+
+    pub fn unlock(&self) {
+        unsafe {
+            self.0.write(0x1);
+        }
+    }
+}
+
+impl<const N: usize> SioSpinLock<N> {
+    pub const fn new() -> Self {
+        assert!(N < 32);
+        Self {}
     }
 }
