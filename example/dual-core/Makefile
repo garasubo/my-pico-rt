@@ -1,11 +1,13 @@
-prog := hello-world
+prog := dual-core
 OPENOCD ?= openocd
 
-.PHONY: write
+.PHONY: write debug-write
+
 
 debug-write:
 	cargo build
 	$(OPENOCD) -f interface/cmsis-dap.cfg -f target/rp2040.cfg -s tcl -c "program ../../target/thumbv6m-none-eabi/debug/$(prog) verify reset exit"
+
 
 write:
 	cargo build --release

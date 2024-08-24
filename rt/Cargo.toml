@@ -10,6 +10,7 @@ rp2040-boot2 = "0.3.0"
 util = { path = "../util" }
 pico-hal = { path = "../hal" }
 lock_api = "0.4.11"
+aligned = "0.4.2"
 
 [build-dependencies]
 cc = "1.0.83"

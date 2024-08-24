@@ -77,3 +77,4 @@ PROVIDE(UsageFault = DefaultExceptionHandler);
 PROVIDE(SVCall = DefaultExceptionHandler);
 PROVIDE(PendSV = DefaultExceptionHandler);
 PROVIDE(SysTick = DefaultExceptionHandler);
+PROVIDE(MainCore1Func = DefaultMainCore1Func);

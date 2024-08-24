@@ -12,6 +12,7 @@ use core::arch::asm;
 use core::panic::PanicInfo;
 use core::ptr;
 use core::ptr::{addr_of, addr_of_mut};
+use aligned::{Aligned, A8};
 use crate::allocator::LockedAllocator;
 
 #[global_allocator]
@@ -20,6 +21,9 @@ static GLOBAL_ALLOCATOR: LockedAllocator = LockedAllocator::new();
 #[link_section = ".boot_loader"]
 #[used]
 pub static BOOT_LOADER: [u8; 256] = rp2040_boot2::BOOT_LOADER_W25Q080;
+
+// 1KB
+static mut CORE1_STACK: Aligned<A8, [u8; 1024]> = Aligned([0; 1024]);
 
 #[no_mangle]
 pub unsafe extern "C" fn Reset() -> ! {
@@ -52,6 +56,43 @@ pub unsafe extern "C" fn Reset() -> ! {
     }
 
     main()
+}
+
+
+pub fn boot_core1() {
+    extern "C" {
+        fn MainCore1Func() -> !;
+    }
+    let reset_vector = RESET_VECTOR as usize;
+    let sp = unsafe { CORE1_STACK.as_ptr() as usize + CORE1_STACK.len() };
+    // 0x1: Thumb mode
+    let entry_point = MainCore1Func as *const () as usize | 0x1;
+    let cmds: [usize; 6] = [0, 0, 1, reset_vector, sp, entry_point];
+    let sio = pico_hal::sio::Sio::new();
+
+    let mut iter = cmds.into_iter();
+    let mut current = iter.next();
+    while let Some(cmd) = current {
+        // always drain the READ FIFO (from core 1) before sending a 0
+        if cmd == 0 {
+            sio.drain_fifo();
+            // execute a SEV as core 1 may be waiting for FIFO space
+            unsafe {
+                asm!("sev");
+            }
+        }
+
+        // write 32 bit value to write FIFO
+        sio.push_fifo_blocking(cmd as u32);
+        // read 32 bit value from read FIFO once available
+        let response = sio.read_fifo_blocking();
+        if response == cmd as u32 {
+            current = iter.next();
+        } else {
+            iter = cmds.into_iter();
+            current = iter.next();
+        }
+    }
 }
 
 #[link_section = ".vector_table.reset_vector"]
@@ -115,6 +156,11 @@ pub static EXCEPTIONS: [Vector; 14] = [
 
 #[no_mangle]
 pub extern "C" fn DefaultExceptionHandler() {
+    loop {}
+}
+
+#[no_mangle]
+pub extern "C" fn DefaultMainCore1Func() {
     loop {}
 }
 
