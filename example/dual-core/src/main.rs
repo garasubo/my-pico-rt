@@ -3,11 +3,11 @@
 
 extern crate alloc;
 
+use aligned::{Aligned, A8};
 use pico_hal::gpio::Gpio;
 use pico_hal::resets::Resets;
 use pico_hal::{clock, systick, uart};
 use pico_rt::{boot_core1, entry};
-use aligned::{Aligned, A8};
 
 entry!(main);
 
