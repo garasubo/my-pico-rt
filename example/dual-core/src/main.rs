@@ -7,10 +7,14 @@ use pico_hal::gpio::Gpio;
 use pico_hal::resets::Resets;
 use pico_hal::{clock, systick, uart};
 use pico_rt::{boot_core1, entry};
+use aligned::{Aligned, A8};
 
 entry!(main);
 
-pub extern "C" fn MainCore1Func() {
+// 1KB
+static mut CORE1_STACK: Aligned<A8, [u8; 1024]> = Aligned([0; 1024]);
+
+pub extern "C" fn core1_main() -> ! {
     let resets = Resets::new();
     let gpio = Gpio::new();
     let uart = uart::Uart0::new();
@@ -30,7 +34,7 @@ pub fn main() -> ! {
     let gpio = Gpio::new();
     gpio.wait_gpio_reset_done(&resets);
     gpio.set_output_enable(6);
-    boot_core1();
+    unsafe { boot_core1(core1_main, CORE1_STACK.as_mut()) };
     gpio.set_high(6);
     let mut flag = true;
     systick::init(1000 * 1000);

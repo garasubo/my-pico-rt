@@ -12,7 +12,6 @@ use core::arch::asm;
 use core::panic::PanicInfo;
 use core::ptr;
 use core::ptr::{addr_of, addr_of_mut};
-use aligned::{Aligned, A8};
 use crate::allocator::LockedAllocator;
 
 #[global_allocator]
@@ -21,9 +20,6 @@ static GLOBAL_ALLOCATOR: LockedAllocator = LockedAllocator::new();
 #[link_section = ".boot_loader"]
 #[used]
 pub static BOOT_LOADER: [u8; 256] = rp2040_boot2::BOOT_LOADER_W25Q080;
-
-// 1KB
-static mut CORE1_STACK: Aligned<A8, [u8; 1024]> = Aligned([0; 1024]);
 
 #[no_mangle]
 pub unsafe extern "C" fn Reset() -> ! {
@@ -59,14 +55,11 @@ pub unsafe extern "C" fn Reset() -> ! {
 }
 
 
-pub fn boot_core1() {
-    extern "C" {
-        fn MainCore1Func() -> !;
-    }
+pub unsafe fn boot_core1(core1_main_func: extern "C" fn() -> !, core1_stack: &mut [u8]) {
     let reset_vector = RESET_VECTOR as usize;
-    let sp = unsafe { CORE1_STACK.as_ptr() as usize + CORE1_STACK.len() };
+    let sp = unsafe { core1_stack.as_ptr() as usize + core1_stack.len() };
     // 0x1: Thumb mode
-    let entry_point = MainCore1Func as *const () as usize | 0x1;
+    let entry_point = core1_main_func as *const () as usize | 0x1;
     let cmds: [usize; 6] = [0, 0, 1, reset_vector, sp, entry_point];
     let sio = pico_hal::sio::Sio::new();
 
