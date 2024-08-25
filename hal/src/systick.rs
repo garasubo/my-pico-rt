@@ -12,6 +12,14 @@ pub fn init(reload_value: u32) {
     }
 }
 
+pub fn enable_interrupt() {
+    unsafe {
+        let current = read_volatile(CSR_ADDR as *const u32) & 0b111;
+        // Set TICKINT bit
+        write_volatile(CSR_ADDR as *mut u32, current | (1 << 1));
+    }
+}
+
 pub fn check_counted() -> bool {
     unsafe { read_volatile(CSR_ADDR as *const u32) & (1 << 16) > 0 }
 }

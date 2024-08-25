@@ -109,6 +109,21 @@ macro_rules! entry {
         }
     };
 }
+
+#[macro_export]
+#[cfg(not(test))]
+macro_rules! systick_entry {
+    ($path:path) => {
+        #[export_name = "SysTick"]
+        pub unsafe fn __systick() {
+            let f: fn() = $path;
+
+            f()
+        }
+    };
+}
+
+
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub union Vector {
