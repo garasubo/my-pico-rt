@@ -1,7 +1,7 @@
 use core::ptr::NonNull;
 
-use alloc::alloc::{GlobalAlloc, Layout};
 use crate::sync::UnsafeLock;
+use alloc::alloc::{GlobalAlloc, Layout};
 
 const LIST_LEN: usize = 5;
 
@@ -25,7 +25,6 @@ impl FreeArea {
 
 unsafe impl Send for FreeArea {}
 
-
 pub struct Allocator {
     free_list_head: [FreeArea; LIST_LEN],
 }
@@ -36,7 +35,13 @@ const MAX_BASE_SIZE: usize = MIN_BASE_SIZE << (LIST_LEN - 1);
 impl Allocator {
     pub const fn new() -> Self {
         Self {
-            free_list_head: [FreeArea::new(), FreeArea::new(), FreeArea::new(), FreeArea::new(), FreeArea::new()],
+            free_list_head: [
+                FreeArea::new(),
+                FreeArea::new(),
+                FreeArea::new(),
+                FreeArea::new(),
+                FreeArea::new(),
+            ],
         }
     }
 
@@ -48,7 +53,9 @@ impl Allocator {
         let size = MIN_BASE_SIZE << idx;
         if self.free_list_head[idx].next.is_some() {
             let mut prev_ptr = self.free_list_head[idx].as_mut();
-            let mut tar = unsafe { &mut *(self.free_list_head[idx].next.as_ref().unwrap().as_ptr() as *mut FreeArea) };
+            let mut tar = unsafe {
+                &mut *(self.free_list_head[idx].next.as_ref().unwrap().as_ptr() as *mut FreeArea)
+            };
             while tar.next.is_some() {
                 let tar_ptr = tar.as_mut();
                 let next_ptr = tar.next.as_ref().unwrap().as_ptr() as *mut FreeArea;
@@ -56,7 +63,7 @@ impl Allocator {
                     unsafe {
                         (*prev_ptr).next = (*next_ptr).next;
                     }
-                    self.push_area_to_list(idx+1, tar_ptr as usize);
+                    self.push_area_to_list(idx + 1, tar_ptr as usize);
                     break;
                 }
                 prev_ptr = tar_ptr;
@@ -92,7 +99,6 @@ impl Allocator {
         let heap_start = (heap_start + MIN_BASE_SIZE - 1) / MIN_BASE_SIZE * MIN_BASE_SIZE;
         let mut current = heap_start;
         let mut idx = 0;
-
 
         // align to max base size
         while current + (MIN_BASE_SIZE << idx) <= heap_end && idx < LIST_LEN - 1 {
@@ -132,7 +138,7 @@ impl Allocator {
         while idx < LIST_LEN {
             let target_list = &mut self.free_list_head[idx];
             let mut flag = false;
-            let mut prev = target_list as *mut _  as *mut u8;
+            let mut prev = target_list as *mut _ as *mut u8;
             let mut next = target_list.next;
             while next.is_some() {
                 let next_ptr = next.as_ref().unwrap().as_ptr();
@@ -161,7 +167,6 @@ impl Allocator {
                 return next_ptr;
             }
 
-
             idx += 1;
         }
 
@@ -170,7 +175,8 @@ impl Allocator {
 
     pub fn dealloc(&mut self, ptr: *mut u8, layout: Layout) {
         let heap_start = ptr as usize;
-        let heap_end = heap_start + (layout.size() + MIN_BASE_SIZE - 1) / MIN_BASE_SIZE * MIN_BASE_SIZE;
+        let heap_end =
+            heap_start + (layout.size() + MIN_BASE_SIZE - 1) / MIN_BASE_SIZE * MIN_BASE_SIZE;
         self.add_area(heap_start, heap_end);
     }
 }
@@ -204,9 +210,9 @@ mod tests {
     use super::*;
     use alloc::vec;
     use array_init::array_init;
-    use rand::SeedableRng;
     use rand::rngs::StdRng;
     use rand::seq::SliceRandom;
+    use rand::SeedableRng;
     extern crate std;
 
     #[repr(align(16))]
@@ -237,7 +243,7 @@ mod tests {
         let val4: &mut AlignedStruct = unsafe { &mut *(mem4 as usize as *mut AlignedStruct) };
         *val1 = (1 << 62) - 1;
         *val2 = (1 << 126) - 1;
-        *val3 = (1 << 30) -1;
+        *val3 = (1 << 30) - 1;
         val4.0 = (1 << 30) - 2;
 
         allocator.dealloc(mem2, Layout::new::<u128>());
@@ -324,7 +330,9 @@ mod tests {
         }
         for i in 64..128 {
             let tar = items[i];
-            assert_eq!(tar as u32, unsafe { (*(ptrs[tar] as usize as *mut AlignedStruct)).0 });
+            assert_eq!(tar as u32, unsafe {
+                (*(ptrs[tar] as usize as *mut AlignedStruct)).0
+            });
             assert!(ptrs[tar] as usize % 16 == 0);
         }
         for i in 0..64 {
@@ -337,11 +345,14 @@ mod tests {
         for i in 0..128 {
             let tar = items[i];
             if i < 64 {
-                assert_eq!(tar as u32 + 256, unsafe { (*(ptrs[tar] as usize as *mut AlignedStruct)).0 });
+                assert_eq!(tar as u32 + 256, unsafe {
+                    (*(ptrs[tar] as usize as *mut AlignedStruct)).0
+                });
             } else {
-                assert_eq!(tar as u32, unsafe { (*(ptrs[tar] as usize as *mut AlignedStruct)).0 });
+                assert_eq!(tar as u32, unsafe {
+                    (*(ptrs[tar] as usize as *mut AlignedStruct)).0
+                });
             }
         }
     }
-
 }

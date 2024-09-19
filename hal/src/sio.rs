@@ -71,6 +71,10 @@ impl Sio {
         Self {}
     }
 
+    pub fn cpu_id(&self) -> u32 {
+        self.cpuid.read()
+    }
+
     pub fn read_fifo_blocking(&self) -> u32 {
         while (self.fifo_st.read() & 0x1) == 0 {
             unsafe {
@@ -114,7 +118,6 @@ impl<const N: usize> Deref for SioSpinLock<N> {
     fn deref(&self) -> &Self::Target {
         unsafe { &*((SIO_BASE + 0x100 + N * 0x4) as *const SioSpinLockRegister) }
     }
-
 }
 
 impl SioSpinLockRegister {

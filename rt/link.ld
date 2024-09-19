@@ -20,6 +20,7 @@ SECTIONS {
 
   .vector_table ORIGIN(FLASH):
   {
+    _vector_table = .;
     /* First entry: initial Stack Pointer value */
     LONG(ORIGIN(RAM) + LENGTH(RAM));
 

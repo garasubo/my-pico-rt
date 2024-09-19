@@ -5,7 +5,7 @@ pub struct PiSpinLock<const N: usize> {
     lock: SioSpinLock<N>,
 }
 
-impl <const N: usize> PiSpinLock<N> {
+impl<const N: usize> PiSpinLock<N> {
     pub const fn new() -> Self {
         Self {
             lock: SioSpinLock::<N>::new(),
@@ -13,7 +13,7 @@ impl <const N: usize> PiSpinLock<N> {
     }
 }
 
-unsafe impl <const N: usize> RawMutex for PiSpinLock<N> {
+unsafe impl<const N: usize> RawMutex for PiSpinLock<N> {
     const INIT: Self = Self {
         lock: SioSpinLock::<N>::new(),
     };

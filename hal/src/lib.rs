@@ -2,7 +2,8 @@
 
 pub mod clock;
 pub mod gpio;
+mod ppb;
 pub mod resets;
 pub mod sio;
-pub mod uart;
 pub mod systick;
+pub mod uart;

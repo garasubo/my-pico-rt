@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 pico-rt = { path = "../../rt" }
 pico-hal = { path = "../../hal" }
+aligned = "0.4.2"

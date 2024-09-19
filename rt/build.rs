@@ -1,5 +1,5 @@
-use std::io::Write;
 use cc::Build;
+use std::io::Write;
 
 fn main() {
     let out = &std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap());

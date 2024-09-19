@@ -104,6 +104,7 @@ dependencies = [
 name = "interrupt"
 version = "0.1.0"
 dependencies = [
+ "aligned",
  "pico-hal",
  "pico-rt",
 ]

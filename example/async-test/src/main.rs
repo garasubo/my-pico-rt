@@ -34,6 +34,5 @@ pub fn main() -> ! {
     executor.spawn(&mut item);
     executor.run();
 
-    loop {
-    }
+    loop {}
 }

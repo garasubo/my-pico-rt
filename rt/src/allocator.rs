@@ -1,6 +1,6 @@
+use crate::spin_lock::PiSpinLockMutex;
 use core::alloc::{GlobalAlloc, Layout};
 use util::allocator::Allocator;
-use crate::spin_lock::PiSpinLockMutex;
 
 pub struct LockedAllocator(pub PiSpinLockMutex<Allocator, 0>);
 

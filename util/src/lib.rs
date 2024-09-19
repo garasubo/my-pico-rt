@@ -2,5 +2,5 @@
 
 extern crate alloc;
 pub mod allocator;
-pub mod sync;
 pub mod linked_list;
+pub mod sync;

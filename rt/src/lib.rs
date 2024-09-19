@@ -3,16 +3,16 @@
 
 extern crate alloc;
 
-pub mod process;
-pub mod task;
-mod spin_lock;
 mod allocator;
+pub mod process;
+mod spin_lock;
+pub mod task;
 
+use crate::allocator::LockedAllocator;
 use core::arch::asm;
 use core::panic::PanicInfo;
 use core::ptr;
 use core::ptr::{addr_of, addr_of_mut};
-use crate::allocator::LockedAllocator;
 
 #[global_allocator]
 static GLOBAL_ALLOCATOR: LockedAllocator = LockedAllocator::new();
@@ -45,7 +45,10 @@ pub unsafe extern "C" fn Reset() -> ! {
     ptr::copy_nonoverlapping(sidata, sdata, count);
 
     let heap_start = addr_of!(_heap_start) as usize;
-    GLOBAL_ALLOCATOR.0.lock().init(heap_start, heap_start + 0x2000);
+    GLOBAL_ALLOCATOR
+        .0
+        .lock()
+        .init(heap_start, heap_start + 0x2000);
 
     extern "Rust" {
         fn main() -> !;
@@ -54,9 +57,11 @@ pub unsafe extern "C" fn Reset() -> ! {
     main()
 }
 
-
 pub unsafe fn boot_core1(core1_main_func: extern "C" fn() -> !, core1_stack: &mut [u8]) {
-    let reset_vector = RESET_VECTOR as usize;
+    extern "C" {
+        static mut _reset_vector: u8;
+    }
+    let reset_vector = unsafe { addr_of_mut!(_reset_vector) as usize };
     let sp = unsafe { core1_stack.as_ptr() as usize + core1_stack.len() };
     // 0x1: Thumb mode
     let entry_point = core1_main_func as *const () as usize | 0x1;
@@ -123,7 +128,6 @@ macro_rules! systick_entry {
     };
 }
 
-
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub union Vector {
@@ -175,7 +179,8 @@ pub extern "C" fn DefaultMainCore1Func() {
 #[no_mangle]
 #[naked]
 pub unsafe extern "C" fn SVCall() {
-    asm!("
+    asm!(
+        "
         ldr r0, 100f
         cmp lr, r0
         bne 1f
@@ -201,6 +206,6 @@ pub unsafe extern "C" fn SVCall() {
     200:
         .word 0xfffffffd
     ",
-    options(noreturn),
+        options(noreturn),
     );
 }

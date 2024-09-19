@@ -22,6 +22,4 @@ fn call_process(func: fn(), sp: u32) {
     context_frame.lr = 0;
     context_frame.return_addr = func as u32;
     context_frame.xpsr = 0x100_0000;
-
-
 }

@@ -1,6 +1,6 @@
 use alloc::boxed::Box;
-use core::{future::Future, pin::Pin, ptr};
 use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
+use core::{future::Future, pin::Pin, ptr};
 use util::linked_list::{LinkedList, ListItem};
 
 pub struct Task {
